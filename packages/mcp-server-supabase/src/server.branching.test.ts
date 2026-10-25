@@ -858,6 +858,53 @@ describe('tools', () => {
       ).toHaveLength(1);
     });
 
+    test('explicitly accepted continuation creates the branch exactly once', async () => {
+      const { client } = await setupModern({
+        clientCapabilities: FORM_CAPABLE,
+      });
+
+      const org = await createOrganization({
+        name: 'My Org',
+        plan: 'free',
+        allowed_release_channels: ['ga'],
+      });
+      const project = await createProject({
+        name: 'Project 1',
+        region: 'us-east-1',
+        organization_id: org.id,
+      });
+      project.status = 'ACTIVE_HEALTHY';
+
+      const args = { project_id: project.id, name: 'test-branch' };
+      const first = (await callModernTool(client, {
+        name: 'create_branch',
+        arguments: args,
+      })) as CallToolResult | InputRequiredResult;
+
+      if (!isInputRequiredResult(first)) {
+        throw new Error('expected an input_required result');
+      }
+
+      const result = (await callModernTool(client, {
+        name: 'create_branch',
+        arguments: args,
+        inputResponses: {
+          confirm_cost: { action: 'accept', content: {} },
+        },
+        requestState: first.requestState,
+      })) as CallToolResult | InputRequiredResult;
+
+      if (isInputRequiredResult(result)) {
+        throw new Error('expected a CallToolResult');
+      }
+      expect(result.isError).toBeFalsy();
+      expect(
+        Array.from(mockBranches.values()).filter(
+          (branch) => branch.name === 'test-branch' && !branch.is_default
+        )
+      ).toHaveLength(1);
+    });
+
     test('form-capable client: decline does not create a branch', async () => {
       const { client } = await setupModern({
         clientCapabilities: FORM_CAPABLE,

@@ -145,6 +145,8 @@ const server = createServer((req, res) => {
 
 `toNodeHandler` comes from `@modelcontextprotocol/node`. Your code imports it directly, so install it alongside.
 
+When enabling elicitation confirmations, configure `elicitation.requestState.key` as a shared secret that is stable across requests, server instances, and redeployments. Set `elicitation.requestState.principal` to a stable authenticated user or service identity; do not derive it from a short-lived access token that may rotate between the initial request and its confirmation continuation. The SDK rejects continuations when the signing key or bound principal changes.
+
 ## Observability
 
 Pass an `observer` to `createSupabaseMcpServer` to collect request lifecycle results and Supabase's built-in facts. Here, `platform` is your existing platform adapter:

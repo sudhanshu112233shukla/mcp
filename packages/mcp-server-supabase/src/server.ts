@@ -110,9 +110,15 @@ export type SupabaseMcpServerOptions = {
    */
   elicitation?: {
     requestState: {
-      /** HMAC key for the `requestState` codec. MUST be at least 32 bytes. */
+      /**
+       * HMAC key for the `requestState` codec. MUST be at least 32 bytes and
+       * remain the same across requests, server instances, and redeployments.
+       */
       key: string | Uint8Array;
-      /** The authenticated principal `requestState` is bound to. */
+      /**
+       * Stable authenticated principal `requestState` is bound to. It must
+       * remain unchanged across confirmation requests, including token refresh.
+       */
       principal: string;
       /** How long a minted `requestState` stays valid, in seconds. */
       ttlSeconds?: number;
